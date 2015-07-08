@@ -1,7 +1,7 @@
 <?php 
 define("ALWAYSWRITE", FALSE); //always write eveng with the message "please check back shortly"
 define("OUTPUTFILEPATH", "./data.html"); //the absolute path of the file to be written
-$IdLeague = "438";
+$IdLeague = "926";
 
 $data = array();
 $title = "";
@@ -121,8 +121,12 @@ function gen2($data, $title){
 		}
 	}
 ?>
-        	<tr>      
-                <td class="dateUpdated center" colspan="5"><em>Updated <?php echo date("F j, Y");?>. Bet US Racing - Official <a href="http://www.usracing.com/kentucky-derby/odds">Kentucky Derby Odds</a>. <br>All odds are fixed odds prices. </em> </td>
+				<tr>
+					<td class="dateUpdated center" colspan="5">
+						<em id='updateemp'>Updated <?php echo date("F j, Y");?>.</em> 
+						Bet US Racing - Official <a href="http://www.usracing.com/kentucky-derby/odds">Kentucky Derby Odds</a>. <br />
+						All odds are fixed odds prices.
+					</td>
             </tr>
         </tbody>
     </table>
@@ -163,9 +167,10 @@ function float2rat($n, $tolerance = 1.e-6) {
 }
 
 function write($contents){
+	$update = " - Updated " . date("F j, Y");
 	if($contents == ""){
-		$contents = "The odds are currently being updated, please check back shortly. <em> - Updated ".date("F j, Y").". </em>";
-		if(ALWAYSWRITE){
+		$contents = "The odds are currently being updated, please check back shortly. <em id='updateemp'> $update. </em>";
+		if(ALWAYSWRITE || !file_exists(OUTPUTFILEPATH)){
 			if(file_put_contents(OUTPUTFILEPATH, $contents)){
 				echo "File " , OUTPUTFILEPATH . " was written with no data.\n";
 				return true;
@@ -176,7 +181,18 @@ function write($contents){
 			}
 		}
 		else{
-			echo "Empty output, file was not written.\n";
+			$contents = preg_replace("/(<em\sid=\'updateemp\'>)(.*?)(<\/em>)/", "$1 ".$update." $3", file_get_contents(OUTPUTFILEPATH) );
+			if($contents !== NULL){
+				if(file_put_contents(OUTPUTFILEPATH, $contents)){
+					echo "Empty output, update record updated.\n";
+					return true;
+				}
+				else{
+					echo "Error while trying to write file " . OUTPUTFILEPATH . " with no data but updating update record. Please check permissions.\n";
+					return false;
+				}
+			}
+			
 			return false; 
 		}
 	}
